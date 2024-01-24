@@ -32,7 +32,7 @@ interface ListProps {
   items: string[];
 }
 
-const List: FC<ListProps> = ({ items }) => {
+export const List: FC<ListProps> = ({ items }) => {
   // const itemHeight = 30;
   const itemsPerPage = 300;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,18 +53,26 @@ const List: FC<ListProps> = ({ items }) => {
 
   const fetchMoreData = () => {
     if (containerRef.current) {
-      const containerHeight = containerRef.current.clientHeight;
+      // const containerHeight = containerRef.current.clientHeight;
       const scrollHeight = containerRef.current.scrollHeight;
-      const scrollTop = containerRef.current.scrollTop;
+      // const scrollTop = containerRef.current.scrollTop;
 
-      if (scrollHeight - (scrollTop + containerHeight) < 100) {
-        const additionalData = items.slice(startIndex, endIndex);
+      // <========== for 300 per time ==========>
+      // if (scrollHeight - (scrollTop + containerHeight) < 100) {
+      //   const additionalData = items.slice(startIndex, endIndex);
+
+      //   setVisibleItems((prevItems) => [...prevItems, ...additionalData]);
+      //   setStartIndex(endIndex);
+      //   setEndIndex(endIndex + itemsPerPage);
+      // }
+
+      // <========== for 1 per time ==========>
+      if (scrollHeight > 0) {
+        const additionalData = items.slice(startIndex, startIndex + 1);
+
         setVisibleItems((prevItems) => [...prevItems, ...additionalData]);
-
-        console.log("fetch more data", startIndex, endIndex);
-
-        setStartIndex(endIndex);
-        setEndIndex(endIndex + itemsPerPage);
+        setStartIndex(startIndex + 1);
+        setEndIndex(endIndex + 1);
       }
     }
   };
@@ -101,5 +109,3 @@ const List: FC<ListProps> = ({ items }) => {
     </>
   );
 };
-
-export default List;
