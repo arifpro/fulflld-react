@@ -1,11 +1,11 @@
+import React, { FC, useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import React, { FC } from "react";
 import { Item } from "./Item";
 import { SafelyRenderChildren } from "./SafelyRenderChildren";
+// import { useScrollPosition } from "../hooks/useScrollPosition";
 
 const ScrollWrapper = styled.div`
   border: 1px solid black;
-  width: 100%;
   width: 100%;
   height: 500px;
   overflow: auto;
@@ -16,27 +16,90 @@ const ListWrapper = styled.ul`
   padding: 0;
 `;
 
-export interface ListProps {
+const SearchBox = styled.input`
+  margin-bottom: 24px;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid black;
+  width: 300px;
+  height: 50px;
+  box-sizing: border-box;
+  font-size: 18px;
+  font-family: monospace;
+`;
+
+interface ListProps {
   items: string[];
 }
 
-export const List: FC<ListProps> = ({ items, children }) => {
+const List: FC<ListProps> = ({ items }) => {
+  // const itemHeight = 30;
+  const itemsPerPage = 300;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [visibleItems, setVisibleItems] = useState<string[]>([]);
+  // const scrollPosition = useScrollPosition(containerRef);
+  const [startIndex, setStartIndex] = useState<number>(0);
+  const [endIndex, setEndIndex] = useState<number>(itemsPerPage);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newSearchTerm = event.target.value;
+    setSearchTerm(newSearchTerm);
+    const filteredItems = items.filter((word) =>
+      word.toLowerCase().includes(newSearchTerm.toLowerCase())
+    );
+    setVisibleItems(filteredItems);
+  };
+
+  const fetchMoreData = () => {
+    if (containerRef.current) {
+      const containerHeight = containerRef.current.clientHeight;
+      const scrollHeight = containerRef.current.scrollHeight;
+      const scrollTop = containerRef.current.scrollTop;
+
+      if (scrollHeight - (scrollTop + containerHeight) < 100) {
+        const additionalData = items.slice(startIndex, endIndex);
+        setVisibleItems((prevItems) => [...prevItems, ...additionalData]);
+
+        console.log("fetch more data", startIndex, endIndex);
+
+        setStartIndex(endIndex);
+        setEndIndex(endIndex + itemsPerPage);
+      }
+    }
+  };
+
+  useEffect(() => {
+    setVisibleItems(items.slice(startIndex, endIndex));
+  }, [items]);
+
   return (
-    <ScrollWrapper>
-      <ListWrapper>
-        {/**
-         * Note: `SafelyRenderChildren` should NOT be removed while solving
-         * this interview. This prevents rendering too many list items and
-         * potentially crashing the web page. This also enforces an artificial
-         * limit (5,000) to the amount of children that can be rendered at one
-         * time during virtualization.
-         */}
-        <SafelyRenderChildren>
-          {items.slice(0, 5000).map((word) => (
-            <Item key={word}>{word}</Item>
-          ))}
-        </SafelyRenderChildren>
-      </ListWrapper>
-    </ScrollWrapper>
+    <>
+      <div>
+        <p>Total Data: {items.length}</p>
+        <p>Visible Data: {visibleItems.length}</p>
+      </div>
+
+      {/* search */}
+      <SearchBox
+        type="text"
+        placeholder="Search..."
+        value={searchTerm}
+        onChange={handleSearch}
+      />
+
+      {/* data */}
+      <ScrollWrapper ref={containerRef} onScroll={fetchMoreData}>
+        <ListWrapper>
+          <SafelyRenderChildren>
+            {visibleItems.map((word) => (
+              <Item key={word}>{word}</Item>
+            ))}
+          </SafelyRenderChildren>
+        </ListWrapper>
+      </ScrollWrapper>
+    </>
   );
 };
+
+export default List;

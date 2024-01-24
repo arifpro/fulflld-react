@@ -1,10 +1,11 @@
-import React, { Children, FC } from "react";
+import React from "react";
 import "./App.css";
-import { List } from "./components/List";
+import List from "./components/List";
 import { useDictionary } from "./hooks/useDictionary";
 
 function App() {
   const dictionary = useDictionary();
+
   return (
     <div className="app">
       <div className="header">
